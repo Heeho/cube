@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">куб</string>
+
+    <string name="aboutB">О программе</string>
+    <string name="about">
+        <b>куб</b>\n\n
+        Крестики-нолики 3Д. Без центра, 3 игрока.\nfeenixbox@gmail.com, 2020
+    </string>
+    <string name="xoglB">Погнали</string>
+    <string name="toggleHuman"><b>Живые игроки:</b></string>
+    <string name="p1">Игрок 1</string>
+    <string name="p2">Игрок 2</string>
+    <string name="p3">Игрок 3</string>
+    <string name="aiTurn">Ход ИИ, нажмите на экран</string>
+    <string name="gameOver">Игра окончена, нажмите на экран для перезапуска</string>
+</resources>
