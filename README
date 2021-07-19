@@ -1,5 +1,1 @@
-Game menu built in ApkBuilder using Meizu 5mc android smartphone.
-
-BGM is played in bound service with destruction cooldown to prevent GC on orientation change (current activity is recreated thus unbinding the last service client).
-
-Preferences are stored in SharedPreferences and delivered to widgets and BGMService in realtime.
+Built in ApkBuilder using Meizu 5mc android smartphone.
