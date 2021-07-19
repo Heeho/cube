@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_margin="2dp"
+    android:columnCount="4"
+    android:orientation="horizontal">
+
+    <Button
+        android:id="@+id/xoglB"
+        android:text="@string/xoglB"
+        android:onClick="gotoActivity"
+        android:layout_gravity="fill"
+        android:layout_columnSpan="4"/>
+
+    <TextView android:text="@string/toggleHuman"/>
+
+    <CheckBox
+        android:id="@+id/p1CB"
+        android:text="@string/p1"
+        android:textColor="#ffffa0ff"/>
+    <CheckBox
+        android:id="@+id/p2CB"
+        android:text="@string/p2"
+        android:textColor="#ffffffa0"/>
+    <CheckBox
+        android:id="@+id/p3CB"
+        android:text="@string/p3"
+        android:textColor="#ffa0ffa0"/>
+
+    <Button
+        android:id="@+id/aboutB"
+        android:text="@string/aboutB"
+        android:onClick="gotoActivity"
+        android:layout_gravity="fill"
+        android:layout_columnSpan="4"/>
+
+</GridLayout>

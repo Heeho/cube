@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">cube</string>
+
+    <string name="aboutB">About</string>
+    <string name="about">
+        <b>cube</b>
+        \r\n\r\n
+        TicTacToe 3D. No center, 3 players. \r\nfeenixbox@gmail.com, 2020
+    </string>
+
+    <string name="xoglB">Play</string>
+    <string name="toggleHuman"><b>Toggle human/AI:</b></string>
+    <string name="p1"><b>Player 1</b></string>
+    <string name="p2"><b>Player 2</b></string>
+    <string name="p3"><b>Player 3</b></string>
+    <string name="aiTurn">AI\'s turn now, tap anywhere</string>
+    <string name="gameOver">Game over, tap to restart</string>
+
+</resources>
