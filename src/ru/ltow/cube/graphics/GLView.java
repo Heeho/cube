@@ -7,6 +7,7 @@ import android.view.GestureDetector;
 import android.util.AttributeSet;
 import android.widget.Toast;
 import android.os.Looper;
+import android.app.Activity;
 
 public class GLView extends GLSurfaceView {
   private Context c;
@@ -23,20 +24,24 @@ public class GLView extends GLSurfaceView {
 
   public void ctor(Context context) {
     c = context;
+
     setEGLContextClientVersion(EGL_CCV);
     tap = new GestureDetector(c, new Tap());
 
     ttt = new TicTacToe(new boolean[]{
       App.prefs.playerIsHuman(PrefsManager.P1_HUMAN),
       App.prefs.playerIsHuman(PrefsManager.P2_HUMAN),
-      App.prefs.playerIsHuman(PrefsManager.P3_HUMAN)});
+      App.prefs.playerIsHuman(PrefsManager.P3_HUMAN)
+    });
 
     renderer = new GLRenderer();
-    renderer.setThings(ttt.initGame());
 
-    if(ttt.message() == TicTacToe.status.AITURN) toast(c.getText(R.string.aiTurn).toString());
+    ttt.initGame();
+    setThings();
 
-    setRenderer(renderer); //setRenderMode(RENDERMODE_WHEN_DIRTY);
+    if(ttt.status() == TicTacToe.Status.AITURN) toast(c.getText(R.string.aiTurn).toString());
+
+    setRenderer(renderer);
   }
 
   @Override
@@ -46,7 +51,6 @@ public class GLView extends GLSurfaceView {
 
     if(tap.onTouchEvent(e)) {
       queueEvent(new Click(e.getX(), e.getY()));
-      //requestRender();
       return true;
     }
 
@@ -62,7 +66,6 @@ public class GLView extends GLSurfaceView {
     currentX = x;
     currentY = y;
 
-    //requestRender();
     return true;
   }
 
@@ -76,18 +79,12 @@ public class GLView extends GLSurfaceView {
 
     @Override
     public void run() {
-      renderer.setThings(ttt.makeTurn(renderer.pickObject(x, y)));
-      renderer.initInstances();
+      ttt.makeTurn(renderer.pickObject(x, y));
+      updateThings();
+      setPlayer();
 
-      String s = null;
-
-      switch(ttt.message()) {
-        case GAMEOVER: s = c.getText(R.string.gameOver).toString(); break;
-        case AITURN:
-        case NONE: break;
-      }
-
-      if(s != null) toast(s);
+      if(ttt.status() == TicTacToe.Status.GAMEOVER)
+      toast(c.getText(R.string.gameOver).toString());
     }
   }
 
@@ -126,5 +123,47 @@ public class GLView extends GLSurfaceView {
       }
     });
     t.start();
+  }
+
+  public void setPlayer() {
+    final int p = ttt.nextMark();
+    ((Activity) c).runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        ((Activity) c).findViewById(R.id.playerV).setBackgroundColor(Colors.player(p));
+      }
+    });
+  }
+
+  private void updateThings() {
+    for(int i = 0; i < ttt.field().length; i++) {
+      if(renderer.things().get(i).model() != ttt.field()[i]) {
+        renderer.things().get(i).model(ttt.field()[i]);
+        renderer.things().get(i).addAnimation(new ScaleUp(renderer.things().get(i).state()));
+      }
+    }
+    renderer.initInstances();
+  }
+
+  private void setThings() {
+    int k = ttt.field().length / TicTacToe.FIELDSIZE;
+    float fieldAngle = 30f;
+    float cellShift = 2f*1f/6f + 0.001f;
+    int offsetX = (TicTacToe.DIMS > 0) ? TicTacToe.FIELDSIZE/2 : 0;
+    int offsetY = (TicTacToe.DIMS > 1) ? TicTacToe.FIELDSIZE/2 : 0;
+    int offsetZ = (TicTacToe.DIMS > 2) ? TicTacToe.FIELDSIZE/2 : 0;
+
+    for(int i = 0; i < ttt.field().length; i++) {
+      renderer.things().add(new Cell(
+        GLUtils.matrix(
+          fieldAngle, fieldAngle, 0,
+          cellShift * (i % TicTacToe.FIELDSIZE - offsetX),
+          cellShift * ((i - i % k) / k - offsetY),
+          cellShift * (offsetZ - ((i - i % TicTacToe.FIELDSIZE) - (i - i % k)) / TicTacToe.FIELDSIZE)
+        ),
+        i,
+        ttt.field()[i]
+      ));
+    }
   }
 }

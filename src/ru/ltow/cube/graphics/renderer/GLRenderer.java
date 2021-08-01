@@ -39,11 +39,11 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     colorP = new ColorProgram();
 
     float size = 1f/6f;
-    models.put(Rendered.CELL_E, new Cube(GLUtils.WHITE_T, size));
-    models.put(Rendered.CELL_X, new Cube(GLUtils.MAGENTA_W, size));
-    models.put(Rendered.CELL_V, new Cube(GLUtils.GREEN_W, size));
-    models.put(Rendered.CELL_O, new Cube(GLUtils.YELLOW_W, size));
-    models.put(Rendered.CELL_U, new Cube(GLUtils.ORANGE_W, size));
+    models.put(0, new Cube(Colors.X, size));
+    models.put(1, new Cube(Colors.O, size));
+    models.put(2, new Cube(Colors.V, size));
+    models.put(3, new Cube(Colors.E, size));
+    models.put(4, new Cube(Colors.U, size));
 
     initInstances();
   }
@@ -68,7 +68,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
   private void clearBuffers() {
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-    GLES20.glClearColor(0, 1f, 1f, 1f);
+    GLES20.glClearColor(Colors.BG[0], Colors.BG[1], Colors.BG[2], Colors.BG[3]);
     GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT|GLES20.GL_DEPTH_BUFFER_BIT);
 
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo);
@@ -87,7 +87,8 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     for(int model : instancesOpaque.keySet()) {
       colorP.render(
-        ColorProgram.COLOR, models.get(model), instancesOpaque.get(model), vpMatrix);
+        ColorProgram.COLOR, models.get(model), instancesOpaque.get(model), vpMatrix
+      );
     }
     GLUtils.checkError("opaque done");
   }
@@ -183,9 +184,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
   }
 
-  public void setThings(ArrayList<Rendered> r) {
-    things = r;
-  }
+  public ArrayList<Rendered> things() {return things;}
 
   public void initInstances() {
     int model = 0;
@@ -197,7 +196,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 
     for(int i = 0; i < things.size(); i++) {
       thing = things.get(i);
-      model = thing.getModel();
+      model = thing.model();
 
       destination = (models.get(model).isOpaque()) ? instancesOpaque : instancesTransp;
 

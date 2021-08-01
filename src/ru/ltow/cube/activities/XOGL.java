@@ -7,5 +7,7 @@ public class XOGL extends BaseA {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.xogl);
+
+    ((GLView) findViewById(R.id.glV)).setPlayer();
   }
 }

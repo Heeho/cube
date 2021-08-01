@@ -1,14 +1,10 @@
 package ru.ltow.cube;
 
 public abstract class Animation {
-    public final Rendered r;
-    public int counter;
-    public boolean finished;
+  protected int counter;
+  protected boolean finished;
+  protected final float step = 0.2f;
 
-    public Animation(Rendered r) {
-        this.r = r;
-    }
-
-    public abstract void perform();
-    public boolean isFinished() {return finished;}
+  public abstract void perform(Rendered r);
+  public boolean finished() {return finished;}
 }

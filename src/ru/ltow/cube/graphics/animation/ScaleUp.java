@@ -1,27 +1,20 @@
 package ru.ltow.cube;
 
-import android.opengl.Matrix;
-
 public class ScaleUp extends Animation {
-    private float step;
-    private float[] state;
+  private float[] state;
 
-    public ScaleUp(Rendered r, float s) {
-        super(r);
-        step = s;
-        state = r.getState();
-    }
+  public ScaleUp(float[] s) {
+    state = s;
+  }
 
-    @Override
-    public void perform() {
-        if(counter > (int) (1f/step)) {
-            finished = true;
-            return;
-        }
-        float[] m = new float[16];
-        float scale = step * (float) counter;
-        Matrix.scaleM(m, 0, state, 0, scale, scale, scale);
-        r.setState(m);
-        counter++;
+  @Override
+  public void perform(Rendered r) {
+    if(counter > (int) (1f/step)) {
+      finished = true;
+      return;
     }
+    float scale = step * (float) counter;
+    r.state(GLUtils.scaleM(state, scale));
+    counter++;
+  }
 }

@@ -1,6 +1,8 @@
 package ru.ltow.cube;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Utils {
   public static int[] ltoi(ArrayList<Integer> list) {
@@ -35,5 +37,36 @@ public class Utils {
       result.add(n[i]);
     }
     return result;
+  }
+
+  public static Set<Integer> findDuplicates(ArrayList<Integer> a) {
+    Set<Integer> uniques = new HashSet<Integer>();
+    Set<Integer> duplicates = new HashSet<Integer>();
+
+    for(int cell : a) {
+      if(!uniques.add(cell)) {
+        if(!duplicates.add(cell)) {
+          //if false, move element to 0
+          Set<Integer> duplicates_ = new HashSet<Integer>();
+          duplicates_.add(cell);
+          duplicates_.addAll(duplicates);
+          duplicates = duplicates_;
+        }
+      }
+    }
+    return duplicates;
+  }
+
+  public static Set<Integer> findUniqueMatches(ArrayList<Integer> a, ArrayList<Integer> b) {
+    Set<Integer> set1 = new HashSet<Integer>(a);
+    Set<Integer> set2 = new HashSet<Integer>(b);
+    Set<Integer> matches = new HashSet<Integer>();
+
+    for(int cell : set1) {
+      if(!set2.add(cell)) {
+        matches.add(cell);
+      }
+    }
+    return matches;
   }
 }

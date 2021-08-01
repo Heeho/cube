@@ -5,9 +5,9 @@ import java.nio.IntBuffer;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.nio.ByteOrder;
-
 import android.opengl.GLES20;
 import android.util.Log;
+import android.opengl.Matrix;
 
 public class GLUtils {
   public static enum genmode { VAO, VBO, FBO, RBO, TEX };
@@ -21,43 +21,7 @@ public class GLUtils {
 
   private static final String TAG = "glutils_log";
 
-  private static final float ALPHA = 0.4f;
-  private static final float ALPHA2 = 0.15f;
-  private static final float W = 160f/255f;
-
   public static final float[] NOCOLOR = {0, 0, 0, 0};
-
-  public static final float[] RED = {1.0f, 0, 0, 1.0f};
-  public static final float[] ORANGE = {1.0f, 0.5f, 0, 1.0f};
-  public static final float[] GREEN = {0, 1.0f, 0, 1.0f};
-  public static final float[] BLUE = {0, 0, 1.0f, 1.0f};
-  public static final float[] WHITE = {1.0f, 1.0f, 1.0f, 1.0f};
-  public static final float[] CYAN = {0, 1.0f, 1.0f, 1.0f};
-  public static final float[] MAGENTA = {1.0f, 0, 1.0f, 1.0f};
-  public static final float[] YELLOW = {1.0f, 1.0f, 0, 1.0f};
-  public static final float[] BLACK = {0, 0, 0, 1.0f};
-
-  public static final float[] RED_W = {1.0f, W, W, 1.0f};
-  public static final float[] ORANGE_W = {1.0f, 0.5f, W, 1.0f};
-  public static final float[] GREEN_W = {W, 1.0f, W, 1.0f};
-  public static final float[] BLUE_W = {W, W, 1.0f, 1.0f};
-  public static final float[] WHITE_W = {1.0f, 1.0f, 1.0f, 1.0f};
-  public static final float[] CYAN_W = {W, 1.0f, 1.0f, 1.0f};
-  public static final float[] MAGENTA_W = {1.0f, W, 1.0f, 1.0f};
-  public static final float[] YELLOW_W = {1.0f, 1.0f, W, 1.0f};
-  public static final float[] BLACK_W = {W, W, W, 1.0f};
-
-  public static final float[] WHITE_T = {1.0f, 1.0f, 1.0f, ALPHA2};
-  public static final float[] BLACK_T = {0, 0, 0, ALPHA};
-
-  public static final float[] RED_WT = {1.0f, W, W, ALPHA};
-  public static final float[] ORANGE_WT = {1.0f, 0.5f, W, ALPHA};
-  public static final float[] GREEN_WT = {W, 1.0f, W, ALPHA};
-  public static final float[] BLUE_WT = {W, W, 1.0f, ALPHA};
-  public static final float[] CYAN_WT = {W, 1.0f, 1.0f, ALPHA};
-  public static final float[] MAGENTA_WT = {1.0f, W, 1.0f, ALPHA};
-  public static final float[] YELLOW_WT = {1.0f, 1.0f, W, ALPHA};
-  public static final float[] BLACK_WT = {W, W, W, ALPHA};
 
   public static int linkProgram(String vertexShaderCode, String fragmentShaderCode) {
     int prog = GLES20.glCreateProgram();
@@ -186,5 +150,35 @@ public class GLUtils {
     bb.put(b);
     bb.position(0);
     return bb;
+  }
+
+  public static float[] scaleM(float[] state, float scale) {
+    float[] m = new float[MATRIX_LENGTH];
+    Matrix.scaleM(m, 0, state, 0, scale, scale, scale);
+    return m;
+  }
+
+  public static float[] matrix(float aX, float aY, float aZ, float tX, float tY, float tZ) {
+    float[] idM = new float[MATRIX_LENGTH];
+    float[] m = new float[MATRIX_LENGTH];
+    Matrix.setIdentityM(idM, 0);
+    Matrix.rotateM(idM, 0, aY, 0,1f,0);
+    Matrix.rotateM(idM, 0, aX, 1f,0,0);
+    Matrix.translateM(m, 0, idM, 0, tX, tY, tZ);
+    return m;
+  }
+
+  public static float[] rgba32to4fv(int c) {
+    float b = 255f;
+    String hex = Integer.toHexString(c);
+
+    float[] result = new float[]{
+      Integer.parseInt(hex.substring(2,4), 16)/b,
+      Integer.parseInt(hex.substring(4,6), 16)/b,
+      Integer.parseInt(hex.substring(6,8), 16)/b,
+      Integer.parseInt(hex.substring(0,2), 16)/b
+    };
+
+    return result;
   }
 }

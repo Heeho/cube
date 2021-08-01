@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="BG">#ff00f0f0</color>
+  <color name="X">#ffffa0ff</color>
+  <color name="O">#ffffffa0</color>
+  <color name="V">#ffa0ffa0</color>
+  <color name="E">#22ffffff</color>
+  <color name="U">#ffffa0a0</color>
+</resources>

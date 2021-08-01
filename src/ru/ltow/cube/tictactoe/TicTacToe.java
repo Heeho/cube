@@ -2,18 +2,16 @@ package ru.ltow.cube;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.Set;
-import android.opengl.Matrix;
-//import android.util.Log;
+import java.util.Arrays;
 
 public class TicTacToe {
   //private static final String TAG = "ttt";
-  public static enum status { NONE, AITURN, GAMEOVER };
-  private status message = TicTacToe.status.NONE;
+  public static enum Status { NONE, AITURN, GAMEOVER };
+  private Status status = TicTacToe.Status.NONE;
 
+  //duplicated, set cell.value == rendered.model
   public static final int X = 0;
   public static final int O = 1;
   public static final int V = 2;
@@ -22,16 +20,12 @@ public class TicTacToe {
 
   public static final boolean AI = false;
 
-  private int dims = 3;
-  private int fsize = 3;
-
-  private float animationStep = 0.2f;
-  private float fieldAngle = 30f;
-  private float cellShift = 2f*1f/6f + 0.001f;
+  public static int DIMS = 3;
+  public static int FIELDSIZE = 3;
 
   private int[] rowSumPows;
   private int[][] rowCells;
-  private ArrayList<Cell> field;
+  private int[] field;
   private HashMap<Integer,ArrayList<Integer>> emptyCells;
 
   //turn manager
@@ -40,69 +34,67 @@ public class TicTacToe {
   private boolean finished;
   //
 
-  public TicTacToe(boolean[] p) {players = p;}
+  public TicTacToe(boolean[] p) {
+    players = p;
+    initGame();
+  }
 
-  public ArrayList<Rendered> initGame() {
+  public void initGame() {
     initField();
     initRows();
     initEmptyCells();
-
-    message((players[0] == AI) ? TicTacToe.status.AITURN : TicTacToe.status.NONE);
-
-    return getFieldRendered();
   }
 
-  public ArrayList<Rendered> makeTurn(int cell) {
+  private void toggleFinished() {finished = !finished;}
+  private void status(Status s) {status = s;}
+  public Status status() {return status;}
+  public int[] field() {return field;}
+  public int nextMark() {return nextMark;}
+
+  public void makeTurn(int cell) {
     if(finished) {
-      message = TicTacToe.status.NONE;
+      status = TicTacToe.Status.NONE;
       toggleFinished();
       initField();
-      return aiTurn();
+      aiTurn();
+      return;
     }
 
     if(players[nextMark] != AI) {
-      if(!put(nextMark, cell)) return getFieldRendered();
-      if(!fillEmptyCells()) return gameOver();
-
-      nextMark = (nextMark < players.length - 1) ? nextMark + 1 : 0;
+      if(!put(nextMark, cell)) return;
+      if(!fillEmptyCells()) {gameOver(); return;}
+      rotateMark();
     }
 
-    return aiTurn();
+    aiTurn();
   }
 
-  private ArrayList<Rendered> aiTurn() {
+  private void aiTurn() {
     while(players[nextMark] == AI) {
-      if(!ai(nextMark)) return gameOver();
-      nextMark = (nextMark < players.length - 1) ? nextMark + 1 : 0;
+      if(!ai(nextMark)) {gameOver(); return;}
+      rotateMark();
     }
-    return getFieldRendered();
+    status = TicTacToe.Status.NONE;
   }
 
-  private ArrayList<Rendered> gameOver() {
+  private void gameOver() {
     nextMark = 0;
     toggleFinished();
-    message(TicTacToe.status.GAMEOVER);
-    return getFieldRendered();
+    status(TicTacToe.Status.GAMEOVER);
   }
 
-  public ArrayList<Rendered> getFieldRendered() {
-    ArrayList<Rendered> result = new ArrayList<Rendered>();
-    for(int i = 0; i < field.size(); i++) {
-      result.add(field.get(i).getRendered());
-    }
-    return result;
-  }
+  private void rotateMark() {nextMark = (nextMark < players.length - 1) ? nextMark + 1 : 0;}
 
   private boolean put(int mark, int cell) {
     if(
-      (mark < 0 && mark >= players.length) //mark must be known
-     || (cell < 0 || cell >= field.size()) //cell number is outside field range
-     || (field.get(cell).getValue() != EMPTY) //cell is not empty
-     || ((dims == 3) && (cell == field.size() / 2)) //not a center in 3d mode
+      (mark < 0 && mark >= players.length) //mark unknown
+     || (cell < 0 || cell >= field.length) //cell number is outside field range
+     || (field[cell] != EMPTY) //cell is not empty
+     || ((DIMS == 3) && (cell == field.length / 2)) //3d mode and cell is center
      || (mark != nextMark) //not a player's turn
     ) return false;
 
-    field.get(cell).setValue(mark);
+    field[cell] = mark;
 
     return true;
   }
@@ -110,66 +102,37 @@ public class TicTacToe {
   public void togglePlayer(int i) {if(i >= 0 && i < players.length) players[i] = !players[i];}
 
   private void initField() {
-    Rendered r = null;
-    ArrayList<Float> smAL = null;
-    field = new ArrayList<Cell>();
+    field = new int[(int) Math.pow(FIELDSIZE, DIMS)];
+    Arrays.fill(field, EMPTY);
 
-    int k = (int) Math.pow(fsize, dims)/fsize;
-    int offsetX = (dims > 0) ? fsize/2 : 0;
-    int offsetY = (dims > 1) ? fsize/2 : 0;
-    int offsetZ = (dims > 2) ? fsize/2 : 0;
+    if(DIMS == 3) field[field.length / 2] = UNUSED; //UNUSED for center
 
-    float[] idMatrix = new float[16];
-    float[] stateMatrix = new float[16];
-
-    for(int i = 0; i < (int) Math.pow(fsize, dims); i++) {
-      smAL = new ArrayList<Float>();
-      Matrix.setIdentityM(idMatrix, 0);
-      Matrix.rotateM(idMatrix, 0, fieldAngle, 0,1f,0);
-      Matrix.rotateM(idMatrix, 0, fieldAngle, 1f,0,0);
-      Matrix.translateM(
-        stateMatrix, 0,
-        idMatrix, 0,
-        cellShift * (i % fsize - offsetX),
-        cellShift * ((i - i % k) / k - offsetY),
-        cellShift * (offsetZ - ((i - i % fsize) - (i - i % k)) / fsize)
-      );
-
-      for(float f : stateMatrix) smAL.add(f);
-
-      Cell c = new Cell(smAL, EMPTY);
-      c.setId(i);
-      r = c.getRendered();
-      r.addAnimation(new ScaleUp(r, animationStep));
-      field.add(c);
-    }
-
-    if(dims == 3) field.get(field.size() / 2).setValue(UNUSED); //UNUSED if no center
+    status((players[0] == AI) ? TicTacToe.Status.AITURN : TicTacToe.Status.NONE);
   }
 
   private boolean fillEmptyCells() {
     for(ArrayList<Integer> a : emptyCells.values()) a.clear();
 
-    int[] rowValues = new int[fsize];
+    int[] rowValues = new int[FIELDSIZE];
     int[] rowSums = new int[rowCells.length];
 
     //for each row
     for(int row = 0; row < rowCells.length; row++) {
       //get cell values
       for(int cell = 0; cell < rowCells[row].length; cell++) {
-        rowValues[cell] = field.get(rowCells[row][cell]).getValue();
+        rowValues[cell] = field[rowCells[row][cell]];
       }
       //count row sum
       rowSums[row] = countSum(rowValues);
 
       //check if game is finished
       for(int p = 0; p < rowSumPows.length; p++) {
-        if(rowSums[row] == rowSumPows[p] * fsize) return false;
+        if(rowSums[row] == rowSumPows[p] * FIELDSIZE) return false;
       }
 
       //get empty cells, put to sum map
       for(int cell : rowCells[row]) {
-        if(field.get(cell).getValue() == EMPTY) {
+        if(field[cell] == EMPTY) {
           emptyCells.get(rowSums[row]).add(cell);
         }
       }
@@ -182,6 +145,7 @@ public class TicTacToe {
     return true;
   }
 
+  //look forward to ML/ANN
   private boolean ai(int mark) {
     if(!fillEmptyCells()) return false;
 
@@ -211,18 +175,18 @@ public class TicTacToe {
     }
     //!add most intersections prio
     //this player m1 intersections
-    for(int cell : findDuplicates(emptyCells.get(mark1))) {
+    for(int cell : Utils.findDuplicates(emptyCells.get(mark1))) {
       if(put(mark, cell)) return true;}
     //next player m1 intersections
-    for(int cell : findDuplicates(emptyCells.get(next1))) {
+    for(int cell : Utils.findDuplicates(emptyCells.get(next1))) {
       if(put(mark, cell)) return true;}
     //rest players m1 intersections
     for(int m = 0; m < players.length; m++) {
-      for(int cell : findDuplicates(emptyCells.get(countSum(new int[]{m})))) {
+      for(int cell : Utils.findDuplicates(emptyCells.get(countSum(new int[]{m})))) {
         if(put(mark, cell)) return true;}
     }
     //this and next players m1 intersections
-    for(int cell : findUniqueMatches(
+    for(int cell : Utils.findUniqueMatches(
       emptyCells.get(next1),
       emptyCells.get(mark1)
     )) {
@@ -231,7 +195,7 @@ public class TicTacToe {
     //this and rest players m1 intersections
     for(int m = 0; m < players.length; m++) {
       if(m != mark) {
-        for(int cell : findUniqueMatches(
+        for(int cell : Utils.findUniqueMatches(
           emptyCells.get(countSum(new int[]{m})),
           emptyCells.get(mark1)
         )) {
@@ -240,9 +204,9 @@ public class TicTacToe {
       }
     }
     //center 
-    if(put(mark, (int) (field.size() / 2))) return true;
+    if(put(mark, (int) (field.length / 2))) return true;
     //m0 intersections
-    for(int cell : findDuplicates(emptyCells.get(mark0))) {
+    for(int cell : Utils.findDuplicates(emptyCells.get(mark0))) {
       if(put(mark, cell)) return true;}
     //this player m1
     for(int cell : emptyCells.get(mark1)) {
@@ -256,45 +220,14 @@ public class TicTacToe {
         if(put(mark, cell)) return true;}
     }
     //any empty cell
-    for(int cell = 0; cell < field.size(); cell++) {
+    for(int cell = 0; cell < field.length; cell++) {
       if(put(mark, cell)) return true;}
 
     return false;
   }
 
-  private Set<Integer> findDuplicates(ArrayList<Integer> a) {
-    Set<Integer> uniques = new HashSet<Integer>();
-    Set<Integer> duplicates = new HashSet<Integer>();
-
-    for(int cell : a) {
-      if(!uniques.add(cell)) {
-        if(!duplicates.add(cell)) {
-          //if false, move element to 0
-          Set<Integer> duplicates_ = new HashSet<Integer>();
-          duplicates_.add(cell);
-          duplicates_.addAll(duplicates);
-          duplicates = duplicates_;
-        }
-      }
-    }
-    return duplicates;
-  }
-
-  private Set<Integer> findUniqueMatches(ArrayList<Integer> a, ArrayList<Integer> b) {
-    Set<Integer> set1 = new HashSet<Integer>(a);
-    Set<Integer> set2 = new HashSet<Integer>(b);
-    Set<Integer> matches = new HashSet<Integer>();
-
-    for(int cell : set1) {
-      if(!set2.add(cell)) {
-        matches.add(cell);
-      }
-    }
-    return matches;
-  }
-
   private void initRows() {
-    switch(dims) {
+    switch(DIMS) {
       case 2:
         rowCells = new int[][]{
           {0,3,6},{1,4,7},{2,5,8}, //vertical
@@ -302,32 +235,6 @@ public class TicTacToe {
           {0,4,8},{2,4,6} //diagonal
         }; break;
       case 3:
-        /*rowCells = new int[][]{
-          //face1
-          {0,3,6},{1,4,7},{2,5,8},
-          {9,12,15},{10,13,16},{11,14,17},
-          {18,21,24},{19,22,25},{20,23,26},
-          //face2
-          {0,1,2},{3,4,5},{6,7,8}, 
-          {9,10,11},{12,13,14},{15,16,17},
-          {18,19,20},{21,22,23},{24,25,26},
-          //face3
-          {0,9,18},{1,10,19},{2,11,20},
-          {3,12,21},{4,13,22},{5,14,23},
-          {6,15,24},{7,16,25},{8,17,26},
-          //diagonals1
-          {0,10,20},{3,13,23},{6,16,26},
-          {2,10,18},{5,13,21},{8,16,24},
-          //diagonals2
-          {0,12,24},{1,13,25},{2,14,26},
-          {6,12,18},{7,13,19},{8,14,20},
-          //diagonals3
-          {0,4,8},{9,13,17},{18,22,26},
-          {2,4,6},{11,13,15},{20,22,24},
-          //diagonals main
-          {0,13,26},{2,13,24},{6,13,20},{8,13,18}
-        };
-        /*///no center
         rowCells = new int[][]{
           //face1
           {0,3,6},{1,4,7},{2,5,8},
@@ -357,7 +264,7 @@ public class TicTacToe {
   }
 
   private void initEmptyCells() {
-    int rowSumN = fsize + 1;
+    int rowSumN = FIELDSIZE + 1;
     int rowSumMax = 0;
 
     rowSumPows = new int[players.length];
@@ -365,7 +272,7 @@ public class TicTacToe {
 
     for(int p = 0; p < rowSumPows.length; p++) {
       rowSumPows[p] = (int) Math.pow(rowSumN, p);
-      rowSumMax += fsize * rowSumPows[p];
+      rowSumMax += FIELDSIZE * rowSumPows[p];
     }
     for(int sum = 0; sum <= rowSumMax; sum++) {
       emptyCells.put(sum, new ArrayList<Integer>());
@@ -379,9 +286,4 @@ public class TicTacToe {
     }
     return result;
   }
-
-  private void toggleFinished() {finished = !finished;}
-
-  private void message(status s) {message = s;}
-  public status message() {return message;}
 }

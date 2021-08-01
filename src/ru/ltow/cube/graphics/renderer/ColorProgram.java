@@ -71,12 +71,13 @@ class ColorProgram {
       0);
 
     for(Rendered r : instances) {
-      if(mode == PICK) GLES20.glUniform4fv(colorL, 1, GLUtils.allocateB(new float[]{
-        0, 0, 0, (float) (r.getId() / 255f)
+      if(mode == PICK)
+      GLES20.glUniform4fv(colorL, 1, GLUtils.allocateB(new float[]{
+        0, 0, 0, (float) (r.id() / 255f)
       }));
 
       stateL = GLES20.glGetUniformLocation(programL, "stateM");
-      GLES20.glUniformMatrix4fv(stateL, 1, false, GLUtils.allocateB(r.getState()));
+      GLES20.glUniformMatrix4fv(stateL, 1, false, GLUtils.allocateB(r.state()));
 
       GLES20.glDrawElements(
         GLES20.GL_TRIANGLES,
