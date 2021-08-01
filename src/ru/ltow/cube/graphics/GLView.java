@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.GestureDetector;
 import android.util.AttributeSet;
 import android.widget.Toast;
-import android.os.Looper;
 import android.app.Activity;
 
 public class GLView extends GLSurfaceView {
@@ -59,7 +58,7 @@ public class GLView extends GLSurfaceView {
         float dx = x - currentX;
         float dy = y - currentY;
         queueEvent(new Drag(dx, dy));
-      break;
+        break;
       default: break;
     }
 
@@ -103,34 +102,25 @@ public class GLView extends GLSurfaceView {
 
   class Tap extends GestureDetector.SimpleOnGestureListener {
     @Override
-    public boolean onDoubleTap(MotionEvent e) {
-      return false;
-    }
-
+    public boolean onDoubleTap(MotionEvent e) {return false;}
     @Override
-    public boolean onSingleTapUp(MotionEvent e) {
-      return true;
-    }
-  }
-
-  private void toast(final String msg) {
-    Thread t = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        Looper.prepare();
-        Toast.makeText(c, msg, Toast.LENGTH_LONG).show();
-        Looper.loop();
-      }
-    });
-    t.start();
+    public boolean onSingleTapUp(MotionEvent e) {return true;}
   }
 
   public void setPlayer() {
-    final int p = ttt.nextMark();
     ((Activity) c).runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        ((Activity) c).findViewById(R.id.playerV).setBackgroundColor(Colors.player(p));
+        ((Activity) c).findViewById(R.id.playerV).setBackgroundColor(Colors.player(ttt.nextMark()));
+      }
+    });
+  }
+
+  private void toast(final String msg) {
+    ((Activity) c).runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(c, msg, Toast.LENGTH_LONG).show();
       }
     });
   }
@@ -139,7 +129,7 @@ public class GLView extends GLSurfaceView {
     for(int i = 0; i < ttt.field().length; i++) {
       if(renderer.things().get(i).model() != ttt.field()[i]) {
         renderer.things().get(i).model(ttt.field()[i]);
-        renderer.things().get(i).addAnimation(new ScaleUp(renderer.things().get(i).state()));
+        renderer.things().get(i).addAnimation(new PopUp(renderer.things().get(i).state()));
       }
     }
     renderer.initInstances();
@@ -154,7 +144,7 @@ public class GLView extends GLSurfaceView {
     int offsetZ = (TicTacToe.DIMS > 2) ? TicTacToe.FIELDSIZE/2 : 0;
 
     for(int i = 0; i < ttt.field().length; i++) {
-      renderer.things().add(new Cell(
+      renderer.things().add(new Rendered(
         GLUtils.matrix(
           fieldAngle, fieldAngle, 0,
           cellShift * (i % TicTacToe.FIELDSIZE - offsetX),
@@ -164,6 +154,7 @@ public class GLView extends GLSurfaceView {
         i,
         ttt.field()[i]
       ));
+      renderer.things().get(i).addAnimation(new PopUp(renderer.things().get(i).state()));
     }
   }
 }

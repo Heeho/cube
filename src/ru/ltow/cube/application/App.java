@@ -10,6 +10,7 @@ public class App extends Application {
     super.onCreate();
 
     prefs = new PrefsManager(this);
+
     Colors.set(
       getColor(R.color.BG),
       getColor(R.color.X),

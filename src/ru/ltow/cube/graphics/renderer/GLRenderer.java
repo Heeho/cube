@@ -29,7 +29,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
   private final float[] vpMatrix = new float[16];
 
   private int width, height;
-
   private float angleX, angleY;
 
   @Override

@@ -9,12 +9,6 @@ public class Rendered {
 
   private ArrayList<Animation> animations = new ArrayList<Animation>();
 
-  public static final int CELL_X = 0;
-  public static final int CELL_O = 1;
-  public static final int CELL_V = 2;
-  public static final int CELL_E = 3;
-  public static final int CELL_U = 4;
-
   public Rendered(float[] s, int i, int m) {
     state(s);
     id(i);

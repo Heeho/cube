@@ -145,7 +145,7 @@ public class TicTacToe {
     return true;
   }
 
-  //look forward to ML/ANN
+  //migrate to ML/ANN
   private boolean ai(int mark) {
     if(!fillEmptyCells()) return false;
 
@@ -173,9 +173,11 @@ public class TicTacToe {
       for(int cell : emptyCells.get(countSum(new int[]{m, m}))) {
         if(put(mark, cell)) return true;}
     }
-    //!add most intersections prio
     //this player m1 intersections
     for(int cell : Utils.findDuplicates(emptyCells.get(mark1))) {
+      if(put(mark, cell)) return true;}
+    //most empty intersections
+    for(int cell : Utils.findDuplicates(emptyCells.get(mark0))) {
       if(put(mark, cell)) return true;}
     //next player m1 intersections
     for(int cell : Utils.findDuplicates(emptyCells.get(next1))) {

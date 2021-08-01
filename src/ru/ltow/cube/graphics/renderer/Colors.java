@@ -1,5 +1,5 @@
 package ru.ltow.cube;
-
+//save/change in prefs?
 public class Colors {
   private static int[] players;
   public static float[] BG, X, O, V, E, U;

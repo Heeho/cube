@@ -1,11 +1,9 @@
 package ru.ltow.cube;
 
-public class ScaleUp extends Animation {
+public class PopUp extends Animation {
   private float[] state;
 
-  public ScaleUp(float[] s) {
-    state = s;
-  }
+  public PopUp(float[] s) {state = s;}
 
   @Override
   public void perform(Rendered r) {
